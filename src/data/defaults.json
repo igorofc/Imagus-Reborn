@@ -34,6 +34,7 @@
 		"fzOnPress": 2,
 		"toolbar": 1,
 		"resizeModeType": "memory",
+		"fullZoomScale": 1.0,
 		"follow": true,
 		"move": true,
 		"waitHide": false,

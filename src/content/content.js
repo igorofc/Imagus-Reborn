@@ -1495,6 +1495,13 @@
                     box = PVI.DIV.style;
                     box.visibility = "hidden";
                     PVI.resize(PVI.resizeMode || false);
+                    if (cfg.hz.resizeModeType === "memory" && PVI.fullZoomScale && PVI.fullZoomScale !== 1) {
+                        let w = parseFloat(PVI.DIV.style.width);
+                        let h = parseFloat(PVI.DIV.style.height);
+                        PVI.DIV.style.width = w * PVI.fullZoomScale + "px";
+                        PVI.DIV.style.height = h * PVI.fullZoomScale + "px";
+                        PVI.m_move();
+                    }
                     // PVI.m_move();
                     box.visibility = "visible";
                     PVI.updateCaption();
@@ -2327,7 +2334,8 @@
                 } else if (key === cfg.keys.mOrig || key === cfg.keys.mFit || key === cfg.keys.mFitW || key === cfg.keys.mFitH) {
                     PVI.resizeMode = cfg.hz.resizeMode = key;
                     if (cfg.hz.resizeModeType === "memory") {
-                        Port.send({ cmd: "savePrefs", prefs: { hz: { resizeMode: key } } });
+                        PVI.fullZoomScale = cfg.hz.fullZoomScale = 1.0;
+                        Port.send({ cmd: "savePrefs", prefs: { hz: { resizeMode: key, fullZoomScale: 1.0 } } });
                     }
 
                     if (PVI.fullZm) {
@@ -2503,6 +2511,14 @@
                 PVI.resizeMode = resizeModes[cfg.hz.resizeModeType] || cfg.hz.resizeMode || cfg.keys.mFit;
 
                 PVI.resize(PVI.resizeMode || false);
+                PVI.fullZoomScale = cfg.hz.resizeModeType === "memory" ? PVI.fullZoomScale || cfg.hz.fullZoomScale || 1 : 1;
+                if (PVI.fullZoomScale !== 1) {
+                    let w = parseFloat(PVI.DIV.style.width);
+                    let h = parseFloat(PVI.DIV.style.height);
+                    PVI.DIV.style.width = w * PVI.fullZoomScale + "px";
+                    PVI.DIV.style.height = h * PVI.fullZoomScale + "px";
+                    PVI.m_move();
+                }
                 PVI.m_move();
                 PVI.DIV.style.visibility = "visible";
             }
@@ -2691,6 +2707,10 @@
                             PVI.fullZm > 1 ? (e.target === PVI.CNT ? [e.offsetX || e.layerX || 0, e.offsetY || e.layerY || 0] : []) : null
                         );
                     }
+                }
+                PVI.fullZoomScale *= (e.deltaY || -e.wheelDelta) > 0 ? 0.75 : 4 / 3;
+                if (cfg.hz.resizeModeType === "memory") {
+                Port.send({ cmd: "savePrefs", prefs: { hz: { fullZoomScale: PVI.fullZoomScale } } });
                 }
                 pdsp(e);
                 return;
